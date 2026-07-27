@@ -21,12 +21,19 @@
     }
 
     * { box-sizing: border-box; margin: 0; padding: 0; font-family: var(--font-family); }
-    body { background: radial-gradient(circle at center, #222222 0%, #0d0d0d 100%);
+    body { background: linear-gradient(135deg, #000000 0%, #7f7f7f 50%, #ffffff 100%);
   display: flex;
   justify-content: center;
   align-items: center;
   min-height: 100vh;
-  padding: 20px;; }
+  margin: 0;
+  padding: 20px;
+}
+
+/* Sombra para resaltar el chat box sobre las zonas claras */
+.chat-container {
+  box-shadow: 0 15px 35px rgba(0, 0, 0, 0.35), 0 5px 15px rgba(0, 0, 0, 0.1);
+}
 
     /* Contenedor Principal del Chat */
     .chat-container {
