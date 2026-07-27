@@ -1,0 +1,262 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Asistente de Selección - TAKAMI</title>
+  <style>
+    /* ======================================================
+       1. VARIABLES DE DISEÑO Y MARCA TAKAMI (Edita aquí)
+       ====================================================== */
+    :root {
+      --primary-color: #111111;       /* Color principal (Header y botón usuario) */
+      --accent-color: #c5a059;        /* Color de acento / detalles */
+      --bg-chat: #f9f9fb;             /* Fondo de la ventana de chat */
+      --text-dark: #1a1a1a;           /* Texto general */
+      --bot-msg-bg: #eef0f3;          /* Fondo del mensaje de la IA */
+      --bot-msg-text: #1a1a1a;        /* Texto mensaje IA */
+      --user-msg-bg: #111111;         /* Fondo del mensaje del usuario */
+      --user-msg-text: #ffffff;       /* Texto del usuario */
+      --font-family: 'Segoe UI', -apple-system, BlinkMacSystemFont, Roboto, sans-serif;
+    }
+
+    * { box-sizing: border-box; margin: 0; padding: 0; font-family: var(--font-family); }
+    body { background-color: #e5e5e5; display: flex; justify-content: center; align-items: center; min-height: 100vh; }
+
+    /* Contenedor Principal del Chat */
+    .chat-container {
+      width: 100%;
+      max-width: 450px;
+      height: 650px;
+      background: #ffffff;
+      border-radius: 16px;
+      box-shadow: 0 12px 32px rgba(0,0,0,0.15);
+      display: flex;
+      flex-direction: column;
+      overflow: hidden;
+    }
+
+    /* Encabezado con Logo de TAKAMI */
+    .chat-header {
+      background-color: var(--primary-color);
+      color: #ffffff;
+      padding: 16px 20px;
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      border-bottom: 2px solid var(--accent-color);
+    }
+
+    .chat-header img {
+      width: 42px;
+      height: 42px;
+      border-radius: 50%;
+      object-fit: cover;
+      background-color: #ffffff;
+      padding: 2px;
+    }
+
+    .header-info h3 { font-size: 16px; font-weight: 600; }
+    .header-info p { font-size: 12px; opacity: 0.8; display: flex; align-items: center; gap: 5px; }
+    .status-dot { width: 8px; height: 8px; background-color: #2ecc71; border-radius: 50%; display: inline-block; }
+
+    /* Área de Mensajes */
+    .chat-messages {
+      flex: 1;
+      padding: 20px;
+      background-color: var(--bg-chat);
+      overflow-y: auto;
+      display: flex;
+      flex-direction: column;
+      gap: 12px;
+    }
+
+    .message {
+      max-width: 82%;
+      padding: 12px 16px;
+      border-radius: 14px;
+      font-size: 14px;
+      line-height: 1.5;
+      white-space: pre-wrap;
+      word-wrap: break-word;
+      animation: fadeIn 0.2s ease-in-out;
+    }
+
+    @keyframes fadeIn {
+      from { opacity: 0; transform: translateY(6px); }
+      to { opacity: 1; transform: translateY(0); }
+    }
+
+    .message.bot {
+      align-self: flex-start;
+      background-color: var(--bot-msg-bg);
+      color: var(--bot-msg-text);
+      border-bottom-left-radius: 2px;
+    }
+
+    .message.user {
+      align-self: flex-end;
+      background-color: var(--user-msg-bg);
+      color: var(--user-msg-text);
+      border-bottom-right-radius: 2px;
+    }
+
+    /* Indicador de "Escribiendo..." */
+    .typing-indicator {
+      align-self: flex-start;
+      background-color: var(--bot-msg-bg);
+      padding: 10px 16px;
+      border-radius: 14px;
+      display: none;
+      gap: 4px;
+    }
+
+    .typing-indicator span {
+      width: 6px; height: 6px; background-color: #888; border-radius: 50%;
+      animation: blink 1.4s infinite ease-in-out both;
+    }
+    .typing-indicator span:nth-child(1) { animation-delay: 0s; }
+    .typing-indicator span:nth-child(2) { animation-delay: 0.2s; }
+    .typing-indicator span:nth-child(3) { animation-delay: 0.4s; }
+
+    @keyframes blink {
+      0%, 80%, 100% { opacity: 0.3; transform: scale(0.8); }
+      40% { opacity: 1; transform: scale(1.1); }
+    }
+
+    /* Área de Entrada de Texto */
+    .chat-input-area {
+      padding: 14px;
+      background-color: #ffffff;
+      border-top: 1px solid #eeeeee;
+      display: flex;
+      gap: 10px;
+    }
+
+    .chat-input-area input {
+      flex: 1;
+      padding: 12px 16px;
+      border: 1px solid #dddddd;
+      border-radius: 24px;
+      outline: none;
+      font-size: 14px;
+    }
+
+    .chat-input-area input:focus { border-color: var(--accent-color); }
+
+    .chat-input-area button {
+      background-color: var(--primary-color);
+      color: #ffffff;
+      border: none;
+      padding: 0 18px;
+      border-radius: 24px;
+      cursor: pointer;
+      font-weight: 600;
+      transition: background 0.2s;
+    }
+
+    .chat-input-area button:hover { background-color: var(--accent-color); }
+  </style>
+</head>
+<body>
+
+  <div class="chat-container">
+    <!-- Encabezado con Marca y Logo -->
+    <div class="chat-header">
+      <!-- REEMPLAZA ESTA URL POR EL LOGO OFICIAL DE TAKAMI -->
+      <img id="takami-logo" src="https://via.placeholder.com/100x100.png?text=TAKAMI" alt="Takami Logo">
+      <div class="header-info">
+        <h3>Selección TAKAMI</h3>
+        <p><span class="status-dot"></span> Asistente Virtual En Línea</p>
+      </div>
+    </div>
+
+    <!-- Mensajes -->
+    <div class="chat-messages" id="chat-messages">
+      <div class="message bot">¡Hola! Bienvenido a Takami. Escribe tu saludo o consulta para comenzar.</div>
+    </div>
+
+    <!-- Indicador de Carga -->
+    <div class="typing-indicator" id="typing-indicator">
+      <span></span><span></span><span></span>
+    </div>
+
+    <!-- Campo de Texto -->
+    <div class="chat-input-area">
+      <input type="text" id="user-input" placeholder="Escribe tu mensaje aquí..." onkeypress="handleKeyPress(event)">
+      <button onclick="sendMessage()">Enviar</button>
+    </div>
+  </div>
+
+  <script>
+    /* ======================================================
+       2. CONFIGURACIÓN DEL WEBHOOK DE N8N (Edita aquí)
+       ====================================================== */
+    const N8N_WEBHOOK_URL = "https://TU-INSTANCIA-N8N.com/webhook/fc87dbcb-6724-4852-8f66-b1c03233fdb3/chat";
+    
+    // Generador o recuperador de ID de sesión único
+    let sessionId = localStorage.getItem("takami_chat_session");
+    if (!sessionId) {
+      sessionId = "session_" + Math.random().toString(36).substring(2, 11);
+      localStorage.setItem("takami_chat_session", sessionId);
+    }
+
+    const messagesContainer = document.getElementById("chat-messages");
+    const userInput = document.getElementById("user-input");
+    const typingIndicator = document.getElementById("typing-indicator");
+
+    function appendMessage(sender, text) {
+      const msgDiv = document.createElement("div");
+      msgDiv.classList.add("message", sender);
+      msgDiv.textContent = text;
+      messagesContainer.appendChild(msgDiv);
+      messagesContainer.scrollTop = messagesContainer.scrollHeight;
+    }
+
+    async function sendMessage() {
+      const text = userInput.value.trim();
+      if (!text) return;
+
+      appendMessage("user", text);
+      userInput.value = "";
+      typingIndicator.style.display = "flex";
+
+      try {
+        const response = await fetch(N8N_WEBHOOK_URL, {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({
+            action: "sendMessage",
+            sessionId: sessionId,
+            chatInput: text
+          })
+        });
+
+        const data = await response.json();
+        typingIndicator.style.display = "none";
+
+        // Obtiene la respuesta enviada por el nodo AI Agent de n8n
+        let botResponse = "No se recibió respuesta.";
+        if (Array.isArray(data) && data[0]?.output) {
+          botResponse = data[0].output;
+        } else if (data.output) {
+          botResponse = data.output;
+        }
+
+        appendMessage("bot", botResponse);
+
+      } catch (error) {
+        console.error("Error al conectar con n8n:", error);
+        typingIndicator.style.display = "none";
+        appendMessage("bot", "Ocurrió un error al conectar con el servidor. Intenta de nuevo.");
+      }
+    }
+
+    function handleKeyPress(event) {
+      if (event.key === "Enter") {
+        sendMessage();
+      }
+    }
+  </script>
+</body>
+</html>
